@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0d1f0f" />
+  <title>Apple Quality Scanner</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+
+  <!-- TensorFlow.js -->
+  <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.15.0/dist/tf.min.js"></script>
+
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- Background Orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <!-- App Shell -->
+  <div class="app-shell">
+
+    <!-- Header -->
+    <header class="app-header">
+      <div class="header-icon">
+        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M20 6C16 2 10 4 10 10C10 14 13 17 16 18C12 18 7 22 7 28C7 34 12 38 20 38C28 38 33 34 33 28C33 22 28 18 24 18C27 17 30 14 30 10C30 4 24 2 20 6Z" fill="url(#appleGrad)"/>
+          <path d="M20 6C20 2 22 0 24 1" stroke="#a8e6b0" stroke-width="1.5" stroke-linecap="round"/>
+          <defs>
+            <linearGradient id="appleGrad" x1="7" y1="6" x2="33" y2="38" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stop-color="#6fcf7f"/>
+              <stop offset="100%" stop-color="#2d8c45"/>
+            </linearGradient>
+          </defs>
+        </svg>
+      </div>
+      <div class="header-text">
+        <h1 class="app-title">Apple Scanner</h1>
+        <p class="app-subtitle">AI Quality Detection</p>
+      </div>
+      <div class="header-badge">
+        <span class="badge-dot"></span>
+        <span>Live</span>
+      </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+
+      <!-- Camera Section -->
+      <section class="camera-section" id="cameraSection">
+        <div class="camera-wrapper">
+          <div class="camera-frame" id="cameraFrame">
+
+            <!-- Live Video -->
+            <video id="videoFeed" autoplay playsinline muted></video>
+
+            <!-- Captured Image -->
+            <canvas id="captureCanvas" style="display:none;"></canvas>
+
+            <!-- Scanner Overlay -->
+            <div class="scan-overlay" id="scanOverlay">
+              <div class="scan-corner tl"></div>
+              <div class="scan-corner tr"></div>
+              <div class="scan-corner bl"></div>
+              <div class="scan-corner br"></div>
+              <div class="scan-ring"></div>
+              <div class="scan-target">
+                <div class="target-crosshair"></div>
+              </div>
+              <div class="scan-line" id="scanLine"></div>
+            </div>
+
+            <!-- Permission Overlay -->
+            <div class="permission-overlay" id="permissionOverlay">
+              <div class="permission-icon">
+                <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="none" stroke="currentColor" stroke-width="1.5"/>
+                  <circle cx="12" cy="9" r="2.5" stroke="currentColor" stroke-width="1.5"/>
+                  <path d="M3 19c2-2 5-3 9-3s7 1 9 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+                </svg>
+              </div>
+              <p>Camera access needed</p>
+              <button class="btn-secondary" id="requestCameraBtn">Enable Camera</button>
+            </div>
+
+            <!-- Captured Badge -->
+            <div class="captured-badge" id="capturedBadge" style="display:none;">
+              <svg viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="7" stroke="#6fcf7f" stroke-width="1.5"/><path d="M5 8l2 2 4-4" stroke="#6fcf7f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              Captured
+            </div>
+
+          </div>
+
+          <!-- Camera Label -->
+          <div class="camera-label">
+            <span class="label-dot"></span>
+            <span id="cameraStatus">Point camera at an apple</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Action Buttons -->
+      <section class="action-section">
+        <button class="btn-scan" id="scanBtn">
+          <span class="btn-icon">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="11" cy="11" r="8" stroke="currentColor" stroke-width="2"/>
+              <path d="M21 21l-4.35-4.35" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+              <path d="M8 11h6M11 8v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+            </svg>
+          </span>
+          <span class="btn-text">Scan Apple</span>
+        </button>
+
+        <button class="btn-retake" id="retakeBtn" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M1 4v6h6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 15a9 9 0 1 0 .49-5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+          Scan Again
+        </button>
+      </section>
+
+      <!-- Loading State -->
+      <section class="loading-section" id="loadingSection" style="display:none;">
+        <div class="loading-spinner">
+          <div class="spinner-ring ring-1"></div>
+          <div class="spinner-ring ring-2"></div>
+          <div class="spinner-ring ring-3"></div>
+          <div class="spinner-core">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" fill="url(#spinnerApple)"/><defs><linearGradient id="spinnerApple" x1="5" y1="2" x2="19" y2="22"><stop offset="0%" stop-color="#6fcf7f"/><stop offset="100%" stop-color="#2d8c45"/></linearGradient></defs></svg>
+          </div>
+        </div>
+        <p class="loading-text">Analyzing apple<span class="loading-dots"><span>.</span><span>.</span><span>.</span></span></p>
+        <p class="loading-sub" id="loadingSubText">Loading AI model</p>
+      </section>
+
+      <!-- Results Section -->
+      <section class="results-section" id="resultsSection" style="display:none;">
+
+        <div class="result-card" id="resultCard">
+
+          <!-- Card Header -->
+          <div class="result-header">
+            <div class="result-icon" id="resultIcon">🍎</div>
+            <div class="result-headline">
+              <h2 class="result-title" id="resultTitle">Scan Complete</h2>
+              <p class="result-confidence" id="resultConfidence">—</p>
+            </div>
+            <div class="result-badge" id="resultBadge">—</div>
+          </div>
+
+          <!-- Divider -->
+          <div class="card-divider"></div>
+
+          <!-- Metrics Grid -->
+          <div class="metrics-grid">
+
+            <div class="metric-item">
+              <div class="metric-label">Condition</div>
+              <div class="metric-value" id="metricCondition">—</div>
+              <div class="metric-bar">
+                <div class="metric-fill" id="metricConditionBar" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div class="metric-item">
+              <div class="metric-label">Ripeness</div>
+              <div class="metric-value" id="metricRipeness">—</div>
+              <div class="metric-bar">
+                <div class="metric-fill fill-amber" id="metricRipenessBar" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div class="metric-item full-width">
+              <div class="metric-label">Sweetness Estimate</div>
+              <div class="sweetness-display">
+                <div class="sweetness-dots" id="sweetnessDots"></div>
+                <div class="sweetness-label" id="sweetnessLabel">—</div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Verdict -->
+          <div class="verdict-box" id="verdictBox">
+            <div class="verdict-icon" id="verdictIcon">✓</div>
+            <div class="verdict-text" id="verdictText">—</div>
+          </div>
+
+          <!-- All Class Probabilities -->
+          <div class="probs-section">
+            <p class="probs-title">Detection Breakdown</p>
+            <div class="probs-list" id="probsList"></div>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- Error Section -->
+      <section class="error-section" id="errorSection" style="display:none;">
+        <div class="error-card">
+          <div class="error-icon">⚠️</div>
+          <h3 class="error-title" id="errorTitle">Something went wrong</h3>
+          <p class="error-message" id="errorMessage">An unexpected error occurred.</p>
+          <button class="btn-secondary" id="errorRetryBtn">Try Again</button>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+      <p>Powered by TensorFlow.js · Runs fully in browser</p>
+    </footer>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
